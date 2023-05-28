@@ -4,7 +4,7 @@ Service responsible to fetch data from JMX gateway serivce and kubernetes metric
 
 ## Installation
 
-To run this project Go v1.13 or higher is required. Make sure your project folder is outside your $GOPATH.
+To run this project Go v1.13 or higher is required. Make sure your project folder is outside your `$GOPATH`.
 
 Download and install Go quickly with the steps described [here](https://go.dev/doc/install).
 
