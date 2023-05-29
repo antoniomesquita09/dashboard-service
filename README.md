@@ -26,5 +26,9 @@ go get ./...
 cd <project-directory>
 ```
 ```bash
-go run src/main.go
+cp .env.sample .env
+```
+Change `.env` with the correct MongoDB URI and credentials.
+```bash
+go run cmd/api/main.go
 ```
