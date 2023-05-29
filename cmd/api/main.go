@@ -5,19 +5,33 @@ import (
 	cpuHandlers "dashboard-service/internal/domain/cpu/handlers"
 	kubernetesHandlers "dashboard-service/internal/domain/kubernetes/handlers"
 	memoryRoutine "dashboard-service/internal/domain/memory/routines"
+	"errors"
+	"log"
+	"net/http"
 
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 )
 
 func main() {
-	e := echo.New()
-	e.GET("/memory", cpuHandlers.FetchCPUMetrics)
-	e.GET("/kubernetes", kubernetesHandlers.FetchKubernetesMetrics)
+	app := echo.New()
+	app.Use(echoprometheus.NewMiddleware("myapp"))
+
+	go func() {
+		metrics := echo.New()                                // this Echo will run on separate port 8081
+		metrics.GET("/metrics", echoprometheus.NewHandler()) // adds route to serve gathered metrics
+		if err := metrics.Start(":8082"); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	}()
+
+	app.GET("/memory", cpuHandlers.FetchCPUMetrics)
+	app.GET("/kubernetes", kubernetesHandlers.FetchKubernetesMetrics)
 
 	// Start a Goroutine to make API calls every 5 seconds
 	go memoryRoutine.MakeMemoryRoutine()
 
 	config.ConnectDB()
 
-	e.Logger.Fatal(e.Start(":8081"))
+	app.Logger.Fatal(app.Start(":8081"))
 }
