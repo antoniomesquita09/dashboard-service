@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,6 +22,16 @@ import (
 
 type Client struct {
 	Percentage float64 `json:"percentage"`
+}
+
+type Memory struct {
+	Used      float64 `json:"used"`
+	Committed float64 `json:"committed"`
+	Total     float64 `json:"total"`
+}
+
+type Error struct {
+	Message string `json:"message"`
 }
 
 type ContainerMetric struct {
@@ -38,6 +50,10 @@ func main() {
 	e := echo.New()
 	e.GET("/memory", getCPUMetrics)
 	e.GET("/kubernetes", getKubernetesMetrics)
+
+	// Start a Goroutine to make API calls every 5 seconds
+	go makeMemoryCalls()
+
 	e.Logger.Fatal(e.Start(":8081"))
 }
 
@@ -73,13 +89,21 @@ func getKubernetesMetrics(c echo.Context) error {
 	// Build the Kubernetes client configuration
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
-		log.Fatalf("Error building kubeconfig: %v", err)
+		log.Printf("Error building kubeconfig: %v", err)
+		error := Error{
+			Message: "Error building kubeconfig",
+		}
+		return c.JSON(http.StatusInternalServerError, error)
 	}
 
 	// Create the Kubernetes client
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		log.Fatalf("Error creating Kubernetes client: %v", err)
+		log.Printf("Error creating Kubernetes client: %v", err)
+		error := Error{
+			Message: "Error creating Kubernetes client",
+		}
+		return c.JSON(http.StatusInternalServerError, error)
 	}
 
 	// Set the namespace you want to monitor
@@ -88,13 +112,21 @@ func getKubernetesMetrics(c echo.Context) error {
 	// Get the list of pods in the specified namespace
 	podList, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		log.Fatalf("Error getting pod list: %v", err)
+		log.Printf("Error getting pod list: %v", err)
+		error := Error{
+			Message: "Error getting pod list",
+		}
+		return c.JSON(http.StatusNotFound, error)
 	}
 
 	// Create the Kubernetes Metrics client
 	metricsClient, err := metricsv.NewForConfig(config)
 	if err != nil {
 		log.Fatalf("Error creating Kubernetes Metrics client: %v", err)
+		error := Error{
+			Message: "Error creating Kubernetes Metrics client",
+		}
+		return c.JSON(http.StatusInternalServerError, error)
 	}
 
 	clusterMetrics := []PodMetric{}
@@ -135,4 +167,37 @@ func getKubernetesMetrics(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, clusterMetrics)
+}
+
+func makeMemoryCalls() {
+	fmt.Println("Enter go routine")
+	for {
+		// Make the API call
+		response, err := http.Get("http://localhost:8080/jmx/memory") // Replace with your API URL
+		if err != nil {
+			fmt.Println("Error making API call:", err)
+		} else {
+			fmt.Println("API response:", response.Status)
+
+			defer response.Body.Close()
+
+			// Read the response body
+			body, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				fmt.Println("Error making API call:", err)
+			}
+
+			// Parse the response JSON
+			memory := Memory{}
+			err = json.Unmarshal(body, &memory)
+			if err != nil {
+				fmt.Println("Error unmarshall response:", err)
+			}
+			fmt.Println("API response body:", memory)
+			// Add your code to process the API response here
+		}
+
+		// Wait for 5 seconds before making the next API call
+		time.Sleep(5 * time.Second)
+	}
 }
