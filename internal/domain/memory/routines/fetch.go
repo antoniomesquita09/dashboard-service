@@ -1,11 +1,17 @@
 package routine
 
 import (
+	"context"
+	"dashboard-service/internal/config"
+	"dashboard-service/internal/domain/memory/models"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Memory struct {
@@ -13,6 +19,8 @@ type Memory struct {
 	Committed float64 `json:"committed"`
 	Total     float64 `json:"total"`
 }
+
+var memoryCollection *mongo.Collection = config.GetCollection(config.DB, "memory")
 
 func MakeMemoryRoutine() {
 	for {
@@ -32,16 +40,30 @@ func MakeMemoryRoutine() {
 			}
 
 			// Parse the response JSON
-			memory := Memory{}
-			err = json.Unmarshal(body, &memory)
+			memoryResponse := Memory{}
+			err = json.Unmarshal(body, &memoryResponse)
 			if err != nil {
 				fmt.Println("Error unmarshall response:", err)
 			}
-			fmt.Println("API response body:", memory)
-			// Add your code to process the API response here
+
+			fmt.Println("API response body:", memoryResponse)
+
+			memory := models.MemoryModel{
+				ID:        primitive.NewObjectID(),
+				Used:      memoryResponse.Used,
+				Committed: memoryResponse.Committed,
+				Total:     memoryResponse.Total,
+			}
+
+			result, err := memoryCollection.InsertOne(context.TODO(), memory)
+			if err != nil {
+				fmt.Println("Error inserting memory document to mongoDb:", err)
+			}
+
+			fmt.Println("Successfully inserted memory document:", result.InsertedID)
 		}
 
 		// Wait for 5 seconds before making the next API call
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second)
 	}
 }

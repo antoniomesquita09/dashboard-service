@@ -28,11 +28,11 @@ func main() {
 	app.GET("/memory", cpuHandlers.FetchCPUMetrics)
 	app.GET("/kubernetes", kubernetesHandlers.FetchKubernetesMetrics)
 
-	// Start a Goroutine to make API calls every 5 seconds
-	go memoryRoutine.MakeMemoryRoutine()
-
 	// Connect to mongo database
 	config.ConnectDB()
+
+	// Start a Goroutine to make API calls every 5 seconds
+	go memoryRoutine.MakeMemoryRoutine()
 
 	app.Logger.Fatal(app.Start(":8081"))
 }
