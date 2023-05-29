@@ -31,6 +31,7 @@ func main() {
 	// Start a Goroutine to make API calls every 5 seconds
 	go memoryRoutine.MakeMemoryRoutine()
 
+	// Connect to mongo database
 	config.ConnectDB()
 
 	app.Logger.Fatal(app.Start(":8081"))
