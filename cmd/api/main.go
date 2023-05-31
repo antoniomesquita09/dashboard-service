@@ -9,13 +9,11 @@ import (
 	memoryHandlers "dashboard-service/internal/domain/memory/handlers"
 	memoryRoutines "dashboard-service/internal/domain/memory/routines"
 
-	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 )
 
 func main() {
 	app := echo.New()
-	app.Use(echoprometheus.NewMiddleware("myapp"))
 
 	app.GET("/cpu", cpuHandlers.FetchCPUMetrics)
 	app.GET("/memory", memoryHandlers.FetchMemoryMetrics)
