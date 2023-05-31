@@ -37,8 +37,6 @@ func fetchMemoryMetrics() {
 	if err != nil {
 		fmt.Println("Error making API call:", err)
 	} else {
-		fmt.Println("API response:", response.Status)
-
 		defer response.Body.Close()
 
 		// Read the response body
@@ -53,8 +51,6 @@ func fetchMemoryMetrics() {
 		if err != nil {
 			fmt.Println("Error unmarshall response:", err)
 		}
-
-		fmt.Println("API response body:", memoryResponse)
 
 		memory := models.MemoryModel{
 			ID:        primitive.NewObjectID(),
