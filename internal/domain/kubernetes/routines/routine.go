@@ -116,7 +116,7 @@ func fetchKubernetesMetrics() {
 		metric := models.PodModel{
 			ID:         primitive.NewObjectID(),
 			PodName:    podResponse.PodName,
-			PodSatus:   podResponse.PodSatus,
+			PodStatus:  podResponse.PodSatus,
 			Containers: []models.ContainerModel{},
 		}
 

@@ -11,6 +11,6 @@ type ContainerModel struct {
 type PodModel struct {
 	ID         primitive.ObjectID `json:"id,omitempty"`
 	PodName    string             `json:"pod_name"`
-	PodSatus   string             `json:"pod_status"`
+	PodStatus  string             `json:"pod_status"`
 	Containers []ContainerModel   `json:"containers"`
 }

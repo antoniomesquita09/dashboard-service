@@ -9,30 +9,47 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	"dashboard-service/internal/domain/memory/models"
+	"dashboard-service/internal/domain/kubernetes/models"
 )
 
-var memoryCollection *mongo.Collection = config.GetCollection(config.DB, "memory")
+//type KubernetesResponse struct {
+//	PodName   string                  `json:"pod_name"`
+//	PodStatus string                  `json:"pod_status"`
+//	Metrics   []models.ContainerModel `json:"metrics"`
+//}
+
+var kubernetesCollection *mongo.Collection = config.GetCollection(config.DB, "kubernetes")
 
 func FetchKubernetesMetrics(c echo.Context) error {
 	ctx := c.Request().Context()
 	// Retrieve all items from the collection
-	cursor, err := memoryCollection.Find(ctx, bson.D{})
+	cursor, err := kubernetesCollection.Find(ctx, bson.D{})
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer cursor.Close(ctx)
 
-	var items []models.MemoryModel
+	var items []models.PodModel
 
 	for cursor.Next(ctx) {
-		var result models.MemoryModel
+		var result models.PodModel
 		err := cursor.Decode(&result)
 		if err != nil {
 			log.Fatal(err)
 		}
 		items = append(items, result)
 	}
+
+	// Group the pods by pod_name
+	//groupedPods := make(map[string][]KubernetesResponse)
+	//for _, pod := range items {
+	//	result := KubernetesResponse{
+	//		PodName:   pod.PodName,
+	//		PodStatus: pod.PodStatus,
+	//		Metrics:   pod.Containers,
+	//	}
+	//	groupedPods[pod.PodName] = append(groupedPods[pod.PodName], result)
+	//}
 
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 

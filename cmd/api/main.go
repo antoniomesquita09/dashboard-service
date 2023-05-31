@@ -17,14 +17,6 @@ func main() {
 	app := echo.New()
 	app.Use(echoprometheus.NewMiddleware("myapp"))
 
-	// go func() {
-	// 	metrics := echo.New()                                // this Echo will run on separate port 8081
-	// 	metrics.GET("/metrics", echoprometheus.NewHandler()) // adds route to serve gathered metrics
-	// 	if err := metrics.Start(":8082"); err != nil && !errors.Is(err, http.ErrServerClosed) {
-	// 		log.Fatal(err)
-	// 	}
-	// }()
-
 	app.GET("/cpu", cpuHandlers.FetchCPUMetrics)
 	app.GET("/memory", memoryHandlers.FetchMemoryMetrics)
 	app.GET("/kubernetes", kubernetesHandlers.FetchKubernetesMetrics)
@@ -32,7 +24,7 @@ func main() {
 	// Connect to mongo database
 	config.ConnectDB()
 
-	var delaySeconds int64 = 1000
+	var delaySeconds int64 = 600 // every minute
 
 	// Start a Goroutine to make API calls every delay seconds
 	go memoryRoutines.MakeMemoryRoutine(delaySeconds)
