@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"dashboard-service/internal/config"
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -14,12 +14,13 @@ import (
 
 var memoryCollection *mongo.Collection = config.GetCollection(config.DB, "memory")
 
-func FetchKubernetesMetrics(c echo.Context) error {
+func FetchMemoryMetrics(c echo.Context) error {
 	ctx := c.Request().Context()
 	// Retrieve all items from the collection
 	cursor, err := memoryCollection.Find(ctx, bson.D{})
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		c.NoContent(http.StatusInternalServerError)
 	}
 	defer cursor.Close(ctx)
 
@@ -29,7 +30,8 @@ func FetchKubernetesMetrics(c echo.Context) error {
 		var result models.MemoryModel
 		err := cursor.Decode(&result)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
+			c.NoContent(http.StatusInternalServerError)
 		}
 		items = append(items, result)
 	}

@@ -1,39 +1,44 @@
 package handlers
 
 import (
-	"encoding/json"
-	"io/ioutil"
+	"dashboard-service/internal/config"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+
+	"dashboard-service/internal/domain/cpu/models"
 )
 
-// CPUMetric struct from gateway-service metric proxy
-type CPUMetric struct {
-	Percentage float64 `json:"percentage"`
-}
+var cpuCollection *mongo.Collection = config.GetCollection(config.DB, "cpu")
 
 // FetchCPUMetrics fetches CPU metrics from gateway-service
 func FetchCPUMetrics(c echo.Context) error {
-	// Make a GET request to another service running on localhost:8080
-	response, err := http.Get("http://localhost:8080/jmx/cpu")
+	ctx := c.Request().Context()
+	// Retrieve all items from the collection
+	cursor, err := cpuCollection.Find(ctx, bson.D{})
 	if err != nil {
-		return err
+		fmt.Println(err)
+		c.NoContent(http.StatusInternalServerError)
 	}
-	defer response.Body.Close()
+	defer cursor.Close(ctx)
 
-	// Read the response body
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return err
+	var items []models.CPUModel
+
+	for cursor.Next(ctx) {
+		var result models.CPUModel
+		err := cursor.Decode(&result)
+		if err != nil {
+			fmt.Println(err)
+			c.NoContent(http.StatusInternalServerError)
+		}
+		items = append(items, result)
 	}
 
-	// Parse the response JSON
-	cpuMetric := CPUMetric{}
-	err = json.Unmarshal(body, &cpuMetric)
-	if err != nil {
-		return err
-	}
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
-	return c.JSON(http.StatusOK, cpuMetric)
+	// Send the response
+	return c.JSON(http.StatusOK, items)
 }
