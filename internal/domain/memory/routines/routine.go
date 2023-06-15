@@ -63,8 +63,6 @@ func fetchMemoryMetrics() {
 			DateTime:  formattedTime,
 		}
 
-		fmt.Println(memory)
-
 		result, err := memoryCollection.InsertOne(context.TODO(), memory)
 		if err != nil {
 			fmt.Println("Error inserting memory document to mongoDb:", err)
