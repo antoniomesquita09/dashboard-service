@@ -6,4 +6,5 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 type CPUModel struct {
 	ID         primitive.ObjectID `json:"id,omitempty"`
 	Percentage float64            `json:"percentage"`
+	DateTime   string             `json:"date_time,omitempty" validate:"required"`
 }

@@ -22,12 +22,12 @@ func main() {
 	// Connect to mongo database
 	config.ConnectDB()
 
-	var delaySeconds int64 = 600 // every minute
+	var intervalSeconds int64 = 10
 
 	// Start a Goroutine to make API calls every delay seconds
-	go memoryRoutines.MakeMemoryRoutine(delaySeconds)
-	go cpuRoutines.MakeCPURoutine(delaySeconds)
-	go kubernetesRoutines.MakeKubernetesRoutine(delaySeconds)
+	go memoryRoutines.MakeMemoryRoutine(intervalSeconds)
+	go cpuRoutines.MakeCPURoutine(intervalSeconds)
+	go kubernetesRoutines.MakeKubernetesRoutine(intervalSeconds)
 
 	app.Logger.Fatal(app.Start(":8081"))
 }

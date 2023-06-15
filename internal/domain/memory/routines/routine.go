@@ -39,6 +39,9 @@ func fetchMemoryMetrics() {
 	} else {
 		defer response.Body.Close()
 
+		currentTime := time.Now()
+		formattedTime := currentTime.Format("2006-01-02 15:04:05")
+
 		// Read the response body
 		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
@@ -57,7 +60,10 @@ func fetchMemoryMetrics() {
 			Used:      memoryResponse.Used,
 			Committed: memoryResponse.Committed,
 			Total:     memoryResponse.Total,
+			DateTime:  formattedTime,
 		}
+
+		fmt.Println(memory)
 
 		result, err := memoryCollection.InsertOne(context.TODO(), memory)
 		if err != nil {

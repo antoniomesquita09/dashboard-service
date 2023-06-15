@@ -13,4 +13,5 @@ type PodModel struct {
 	PodName    string             `json:"pod_name"`
 	PodStatus  string             `json:"pod_status"`
 	Containers []ContainerModel   `json:"containers"`
+	DateTime   string             `json:"date_time,omitempty" validate:"required"`
 }

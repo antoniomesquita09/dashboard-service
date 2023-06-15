@@ -37,6 +37,9 @@ func fetchCPUMetrics() {
 	}
 	defer response.Body.Close()
 
+	currentTime := time.Now()
+	formattedTime := currentTime.Format("2006-01-02 15:04:05")
+
 	// Read the response body
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -53,6 +56,7 @@ func fetchCPUMetrics() {
 	cpu := models.CPUModel{
 		ID:         primitive.NewObjectID(),
 		Percentage: cpuResponse.Percentage,
+		DateTime:   formattedTime,
 	}
 
 	result, err := cpuCollection.InsertOne(context.TODO(), cpu)

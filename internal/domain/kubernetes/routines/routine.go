@@ -74,7 +74,10 @@ func fetchKubernetesMetrics() {
 		log.Fatalf("Error creating Kubernetes Metrics client: %v", err)
 	}
 
-	podsResponse := []Pod{}
+	var podsResponse []Pod
+
+	currentTime := time.Now()
+	formattedTime := currentTime.Format("2006-01-02 15:04:05")
 
 	// Retrieve and print memory usage and CPU information for each pod
 	for _, pod := range podList.Items {
@@ -118,6 +121,7 @@ func fetchKubernetesMetrics() {
 			PodName:    podResponse.PodName,
 			PodStatus:  podResponse.PodSatus,
 			Containers: []models.ContainerModel{},
+			DateTime:   formattedTime,
 		}
 
 		for _, containerResponse := range podResponse.Containers {
