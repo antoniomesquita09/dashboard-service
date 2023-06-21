@@ -3,11 +3,11 @@ package handlers
 import (
 	"dashboard-service/internal/config"
 	"fmt"
-	"net/http"
-
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"math"
+	"net/http"
 
 	"dashboard-service/internal/domain/cpu/models"
 )
@@ -34,7 +34,15 @@ func FetchCPUMetrics(c echo.Context) error {
 			fmt.Println(err)
 			c.NoContent(http.StatusInternalServerError)
 		}
-		items = append(items, result)
+		multiplied := result.Percentage * 100
+		roundedPercentage := math.Round(multiplied*100) / 100
+
+		parsedResult := models.CPUModel{
+			ID:         result.ID,
+			DateTime:   result.DateTime,
+			Percentage: roundedPercentage,
+		}
+		items = append(items, parsedResult)
 	}
 
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)

@@ -3,6 +3,7 @@ package handlers
 import (
 	"dashboard-service/internal/config"
 	"fmt"
+	"math"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -33,11 +34,25 @@ func FetchMemoryMetrics(c echo.Context) error {
 			fmt.Println(err)
 			c.NoContent(http.StatusInternalServerError)
 		}
-		items = append(items, result)
+
+		parsedResult := models.MemoryModel{
+			ID:        result.ID,
+			DateTime:  result.DateTime,
+			Committed: bytesToMegabytes(result.Committed),
+			Used:      bytesToMegabytes(result.Used),
+			Total:     bytesToMegabytes(result.Total),
+		}
+		items = append(items, parsedResult)
 	}
 
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
 	// Send the response
 	return c.JSON(http.StatusOK, items)
+}
+
+func bytesToMegabytes(bytes float64) float64 {
+	megabytes := bytes / (1024 * 1024)
+	rounded := math.Round(megabytes*100) / 100
+	return rounded
 }

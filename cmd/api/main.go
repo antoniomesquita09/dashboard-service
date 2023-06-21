@@ -8,6 +8,7 @@ import (
 	kubernetesRoutines "dashboard-service/internal/domain/kubernetes/routines"
 	memoryHandlers "dashboard-service/internal/domain/memory/handlers"
 	memoryRoutines "dashboard-service/internal/domain/memory/routines"
+	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,10 +20,12 @@ func main() {
 	app.GET("/memory", memoryHandlers.FetchMemoryMetrics)
 	app.GET("/kubernetes", kubernetesHandlers.FetchKubernetesMetrics)
 
+	app.Use(middleware.CORS())
+
 	// Connect to mongo database
 	config.ConnectDB()
 
-	var intervalSeconds int64 = 10
+	var intervalSeconds int64 = 100
 
 	// Start a Goroutine to make API calls every delay seconds
 	go memoryRoutines.MakeMemoryRoutine(intervalSeconds)
