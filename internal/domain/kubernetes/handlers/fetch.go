@@ -40,19 +40,29 @@ func FetchKubernetesMetrics(c echo.Context) error {
 		items = append(items, result)
 	}
 
-	// Group the pods by pod_name
-	//groupedPods := make(map[string][]KubernetesResponse)
-	//for _, pod := range items {
-	//	result := KubernetesResponse{
-	//		PodName:   pod.PodName,
-	//		PodStatus: pod.PodStatus,
-	//		Metrics:   pod.Containers,
-	//	}
-	//	groupedPods[pod.PodName] = append(groupedPods[pod.PodName], result)
-	//}
+	// Create an array of arrays to store the grouped objects
+	var groups [][]models.PodModel
+
+	// Iterate over the objects and group them by pod_name
+	for _, obj := range items {
+		// Check if a group with the same pod_name already exists
+		found := false
+		for i, group := range groups {
+			if group[0].PodName == obj.PodName {
+				groups[i] = append(groups[i], obj)
+				found = true
+				break
+			}
+		}
+
+		// If a group doesn't exist, create a new one
+		if !found {
+			groups = append(groups, []models.PodModel{obj})
+		}
+	}
 
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
 	// Send the response
-	return c.JSON(http.StatusOK, items)
+	return c.JSON(http.StatusOK, groups)
 }

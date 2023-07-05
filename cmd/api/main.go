@@ -25,7 +25,7 @@ func main() {
 	// Connect to mongo database
 	config.ConnectDB()
 
-	var intervalSeconds int64 = 100
+	var intervalSeconds int64 = 500
 
 	// Start a Goroutine to make API calls every delay seconds
 	go memoryRoutines.MakeMemoryRoutine(intervalSeconds)
